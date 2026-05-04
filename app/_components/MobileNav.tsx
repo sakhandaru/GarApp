@@ -28,7 +28,7 @@ export function MobileNav({ activeTab, onTabChange, onOpenAdd, onOpenSearch }: M
   ]
 
   return (
-    <div className="fixed bottom-6 left-6 right-6 z-[100] flex items-center justify-between pointer-events-none sm:hidden">
+    <div className="fixed bottom-6 left-6 right-6 z-100 flex items-center justify-between pointer-events-none sm:hidden">
       {/* Menu Bar */}
       <div className="bg-black/90 backdrop-blur-xl p-2 rounded-full border border-white/20 flex items-center gap-1 pointer-events-auto shadow-2xl">
         {items.map((item) => (

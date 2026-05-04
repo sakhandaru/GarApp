@@ -31,14 +31,9 @@ import {
   Clock, 
   Layers, 
   Zap, 
-  ChevronRight,
-  Target,
-  Trash2,
-  Calendar,
-  Terminal,
   Cpu
 } from 'lucide-react'
-import { useAppContext, updateTaskStatus, deleteTask } from '../_context/AppContext'
+import { useAppContext, updateTaskStatus } from '../_context/AppContext'
 import { cn } from '../_lib/utils'
 import { Task } from '../_lib/types'
 import { supabase } from '../_lib/supabase'
@@ -108,15 +103,14 @@ function SortableTaskCard({ task, isOverlay }: SortableTaskCardProps) {
 }
 
 interface KanbanColumnProps {
-  id: string
+  id: 'backlog' | 'ready' | 'progress' | 'selesai'
   label: string
-  icon: any
-  color: string
+  icon: React.ElementType
   tasks: Task[]
   onAddClick: () => void
 }
 
-function KanbanColumn({ id, label, icon: Icon, color, tasks, onAddClick }: KanbanColumnProps) {
+function KanbanColumn({ id, label, icon: Icon, tasks, onAddClick }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
     data: { type: 'Column' }
@@ -184,12 +178,12 @@ export function KanbanView() {
   const [addingToCol, setAddingToCol] = useState<string | null>(null)
   const [newSubtask, setNewSubtask] = useState('')
 
-  const columns = [
-    { id: 'backlog', label: 'Backlog', icon: Layers, color: 'text-black' },
-    { id: 'ready', label: 'Ready', icon: Zap, color: 'text-black' },
-    { id: 'progress', label: 'Process', icon: Clock, color: 'text-black' },
-    { id: 'selesai', label: 'Stable', icon: CheckCircle2, color: 'text-black' },
-  ] as const
+  const columns: { id: 'backlog' | 'ready' | 'progress' | 'selesai', label: string, icon: React.ElementType }[] = [
+    { id: 'backlog', label: 'Backlog', icon: Layers },
+    { id: 'ready', label: 'Ready', icon: Zap },
+    { id: 'progress', label: 'Process', icon: Clock },
+    { id: 'selesai', label: 'Stable', icon: CheckCircle2 },
+  ]
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -296,7 +290,6 @@ export function KanbanView() {
               id={col.id}
               label={col.label}
               icon={col.icon}
-              color={col.color}
               tasks={projectTasks.filter(t => t.status === col.id)}
               onAddClick={() => setAddingToCol(col.id)}
             />
@@ -318,7 +311,7 @@ export function KanbanView() {
 
       <AnimatePresence>
         {addingToCol && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-sm">
+          <div className="fixed inset-0 z-100 flex items-center justify-center p-6 bg-black/90 backdrop-blur-sm">
             <motion.div 
               initial={{ scale: 1.1, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}

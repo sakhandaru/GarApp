@@ -29,7 +29,7 @@ export function HabitTab() {
   const handleAddHabit = (e: React.FormEvent) => {
     e.preventDefault()
     if (newHabitNama.trim()) {
-      addHabit(dispatch, newHabitNama.trim())
+      addHabit(dispatch, { nama: newHabitNama.trim() })
       setNewHabitNama('')
     }
   }

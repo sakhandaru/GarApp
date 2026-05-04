@@ -10,8 +10,6 @@ import {
   Circle, 
   Clock, 
   ChevronRight,
-  MoreHorizontal,
-  Calendar as CalendarIcon,
   Plus
 } from 'lucide-react'
 import { cn } from '../_lib/utils'
@@ -64,7 +62,6 @@ export function HomeTab() {
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   
   const dragY = useMotionValue(0)
-  const sheetY = useTransform(dragY, [0, -500], [0, -500])
 
   const today = new Date()
   const formattedDay = format(today, 'eee')
