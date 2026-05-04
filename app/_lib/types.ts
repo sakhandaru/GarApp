@@ -24,6 +24,7 @@ export interface Task {
   recurringDays?: number[]
   parentTaskId?: string // untuk subtask
   subtasks?: Task[] // computed field untuk UI
+  tags?: string[]
   dibuatPada: string
   selesaiPada?: string
 }

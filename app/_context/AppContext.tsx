@@ -95,6 +95,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           recurringType: t.recurring_type,
           recurringDays: t.recurring_days,
           parentTaskId: t.parent_task_id,
+          tags: t.tags || [],
           dibuatPada: t.dibuat_pada,
           selesaiPada: t.selesai_pada
         }))})
@@ -142,6 +143,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             recurringType: t.recurring_type,
             recurringDays: t.recurring_days,
             parentTaskId: t.parent_task_id, 
+            tags: t.tags || [],
             dibuatPada: t.dibuat_pada,
             selesaiPada: t.selesai_pada
           }})
@@ -161,6 +163,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             recurringType: t.recurring_type,
             recurringDays: t.recurring_days,
             parentTaskId: t.parent_task_id, 
+            tags: t.tags || [],
             dibuatPada: t.dibuat_pada,
             selesaiPada: t.selesai_pada
           }})
@@ -219,6 +222,7 @@ export const updateTask = async (dispatch: React.Dispatch<Action>, taskId: strin
       is_recurring: updates.isRecurring,
       recurring_type: updates.recurringType,
       recurring_days: updates.recurringDays,
+      tags: updates.tags,
       selesai_pada: updates.selesaiPada
     })
     .eq('id', taskId)
@@ -240,6 +244,7 @@ export const updateTask = async (dispatch: React.Dispatch<Action>, taskId: strin
       recurringType: data.recurring_type,
       recurringDays: data.recurring_days,
       parentTaskId: data.parent_task_id,
+      tags: data.tags || [],
       dibuatPada: data.dibuat_pada,
       selesaiPada: data.selesai_pada
     }})
@@ -272,6 +277,7 @@ export const updateTaskStatus = async (dispatch: React.Dispatch<Action>, taskId:
       recurringType: data.recurring_type,
       recurringDays: data.recurring_days,
       parentTaskId: data.parent_task_id,
+      tags: data.tags || [],
       dibuatPada: data.dibuat_pada,
       selesaiPada: data.selesai_pada
     }})

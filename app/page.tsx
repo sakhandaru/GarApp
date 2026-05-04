@@ -66,8 +66,7 @@ export default function Page() {
 
       {/* Main Content Area */}
       <main className={cn(
-        "flex-1 flex flex-col min-w-0 bg-transparent overflow-hidden relative z-10",
-        !isFocusMode && !isKanbanMode && "pb-32 sm:pb-0" // Add padding for mobile nav
+        "flex-1 flex flex-col min-w-0 bg-transparent overflow-hidden relative z-10"
       )}>
         <AnimatePresence mode="wait">
           <motion.div
@@ -83,6 +82,7 @@ export default function Page() {
         </AnimatePresence>
       </main>
 
+      {/* Mobile Navigation */}
       {/* Mobile Navigation */}
       {!isFocusMode && !isKanbanMode && (
         <MobileNav 

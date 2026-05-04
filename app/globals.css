@@ -17,6 +17,9 @@
   --foreground: #000000;
   --card-bg: #FFFFFF;
   --card-border: #000000;
+  --nothing-base: #f3f0ea;
+  --nothing-surface: #faf8f4;
+  --nothing-accent: #ff6a00;
 }
 
 /* Force Light Mode consistently */
@@ -29,13 +32,27 @@
 
 body {
   color: var(--foreground);
-  background: var(--background);
-  font-family: var(--font-sans);
+  background:
+    radial-gradient(circle at top, rgba(255, 106, 0, 0.05), transparent 22rem),
+    linear-gradient(180deg, #fcfbf8 0%, #f1eee9 100%);
+  font-family: var(--font-geist-sans);
+  letter-spacing: -0.04em;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 
 @layer utilities {
+  .nothing-panel {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(246, 243, 237, 0.94)),
+      var(--nothing-surface);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow:
+      0 24px 60px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+  }
+
   .futuristic-card {
     background: var(--card-bg);
     border: 1px solid var(--foreground);

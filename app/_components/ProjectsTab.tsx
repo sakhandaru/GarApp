@@ -6,7 +6,8 @@ import {
   Briefcase, 
   ChevronRight,
   Plus,
-  Target
+  Target,
+  Folder
 } from 'lucide-react'
 import { useAppContext } from '../_context/AppContext'
 import { cn } from '../_lib/utils'
@@ -28,80 +29,94 @@ export function ProjectsTab({ onOpenAdd }: ProjectsTabProps) {
   const projectTasks = tasks.filter(t => !t.parentTaskId && tasks.some(sub => sub.parentTaskId === t.id))
 
   return (
-    <div className="flex-1 flex flex-col p-8 md:p-16 overflow-y-auto">
-      <header className="mb-12">
-        <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-4">Pusat Management Proyek</h2>
-        <p className="text-zinc-500 text-lg font-medium">Klik pada proyek untuk masuk ke Kanban Board.</p>
-      </header>
+    <div className="flex-1 flex flex-col bg-[#F5F5F5] overflow-y-auto no-scrollbar pb-32">
+      {/* 1. HEADING - Home Style */}
+      <div className="flex justify-between items-start px-6 pt-16 mb-12">
+        <div className="tracking-tighter">
+          <h1 className="text-[40px] font-bold leading-[0.95] text-zinc-900">
+            Active<br />Projects
+          </h1>
+        </div>
+        <div className="text-right tracking-tighter">
+          <p className="text-[40px] font-bold text-zinc-400 leading-[0.95]">{projectTasks.length}</p>
+          <p className="text-[40px] font-bold text-zinc-400 leading-[0.95]">Nodes</p>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* 2. PROJECTS LIST */}
+      <div className="px-4 space-y-4">
         {projectTasks.length === 0 ? (
-          <div className="col-span-full py-20 text-center glass rounded-[32px] border border-dashed border-white/10">
-            <Briefcase className="w-12 h-12 text-zinc-800 mx-auto mb-4" />
-            <p className="text-zinc-500 font-bold">Belum ada proyek aktif.</p>
-            <p className="text-zinc-600 text-sm mt-2">Buat tugas lalu tambahkan subtask untuk menjadikannya proyek.</p>
+          <div className="py-20 text-center bg-white rounded-[28px] shadow-sm border border-zinc-100 mx-2">
+            <Folder className="w-12 h-12 text-zinc-200 mx-auto mb-4" />
+            <p className="text-zinc-400 font-bold tracking-tighter text-lg">No active nodes.</p>
+            <button 
+              onClick={onOpenAdd}
+              className="mt-4 text-[13px] font-bold uppercase tracking-widest text-[#007AFF]"
+            >
+              Initialize New Project
+            </button>
           </div>
         ) : (
-          projectTasks.map((project, i) => {
-            const subtasks = tasks.filter(t => t.parentTaskId === project.id)
-            const completed = subtasks.filter(t => t.isSelesai).length
-            const progress = Math.round((completed / (subtasks.length || 1)) * 100)
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {projectTasks.map((project) => {
+              const subtasks = tasks.filter(t => t.parentTaskId === project.id)
+              const completed = subtasks.filter(t => t.isSelesai).length
+              const progress = Math.round((completed / (subtasks.length || 1)) * 100)
 
-            return (
-              <motion.div
-                key={project.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                onClick={() => handleProjectClick(project.id)}
-                className="glass-dark p-8 rounded-[40px] border border-white/5 transition-all relative overflow-hidden h-fit group hover:border-primary/40 cursor-pointer"
-              >
-                <div className="flex justify-between items-start mb-6">
-                  <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary border border-primary/20 group-hover:bg-primary group-hover:text-white transition-all">
-                    <Briefcase className="w-7 h-7" />
+              return (
+                <motion.div
+                  key={project.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  onClick={() => handleProjectClick(project.id)}
+                  className="bg-white p-7 rounded-[28px] shadow-[0_10px_40px_rgba(0,0,0,0.02)] border border-zinc-50 flex flex-col relative group cursor-pointer active:scale-[0.98] transition-all"
+                >
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="w-12 h-12 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-900 group-hover:bg-[#007AFF] group-hover:text-white transition-all">
+                      <Folder className="w-6 h-6" />
+                    </div>
+                    <div className="p-2 bg-zinc-50 rounded-full opacity-0 group-hover:opacity-100 transition-all">
+                      <ChevronRight className="w-5 h-5 text-zinc-400" />
+                    </div>
                   </div>
-                  <div className="p-3 glass rounded-full opacity-0 group-hover:opacity-100 transition-all">
-                    <ChevronRight className="w-6 h-6" />
+
+                  <h3 className="text-[22px] font-bold tracking-tighter leading-tight mb-1 text-zinc-900 group-hover:text-[#007AFF] transition-colors">
+                    {project.judul}
+                  </h3>
+                  
+                  <div className="flex items-center gap-2 mb-6">
+                    <span className="text-[12px] font-bold text-zinc-300 tracking-tighter uppercase">
+                      {completed} / {subtasks.length} Completed
+                    </span>
+                    <div className="flex-1 border-b border-dotted border-zinc-100 mb-1" />
+                    <span className="text-[12px] font-bold text-zinc-900 tracking-tighter">
+                      {progress}%
+                    </span>
                   </div>
-                </div>
 
-                <h3 className="text-2xl font-black mb-2 group-hover:text-primary transition-colors">{project.judul}</h3>
-                
-                <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest text-zinc-500 mb-6">
-                  <span>{completed} / {subtasks.length} Actionable Items</span>
-                  <span className="text-primary font-black">{progress}%</span>
-                </div>
+                  {/* Ultra-thin Progress Bar */}
+                  <div className="h-[2px] w-full bg-zinc-50 rounded-full overflow-hidden mb-6">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progress}%` }}
+                      transition={{ duration: 1.2, ease: "circOut" }}
+                      className="h-full bg-[#007AFF]"
+                    />
+                  </div>
 
-                <div className="h-3 bg-white/5 rounded-full overflow-hidden mb-6">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progress}%` }}
-                    transition={{ duration: 1, ease: "circOut" }}
-                    className="h-full bg-linear-to-r from-primary to-blue-500 shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-600">
-                  <Target className="w-3 h-3" />
-                  <span>Open Kanban Board</span>
-                </div>
-              </motion.div>
-            )
-          })
+                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-zinc-400">
+                    <Target className="w-3 h-3" />
+                    <span>View Kanban System</span>
+                  </div>
+                </motion.div>
+              )
+            })}
+          </div>
         )}
-
-        <button 
-          onClick={onOpenAdd} 
-          className="p-12 rounded-[40px] border-2 border-dashed border-white/5 flex flex-col items-center justify-center gap-4 text-zinc-600 hover:text-primary hover:border-primary/30 transition-all group bg-white/1"
-        >
-          <div className="w-16 h-16 rounded-full border-2 border-current flex items-center justify-center group-hover:scale-110 transition-transform bg-white/5">
-            <Plus className="w-8 h-8" />
-          </div>
-          <div className="text-center">
-            <p className="font-black text-lg">Mulai Proyek Baru</p>
-            <p className="text-sm opacity-60">Pecah tugas besar menjadi langkah kecil.</p>
-          </div>
-        </button>
       </div>
+
+      {/* Global Bottom Padding for Nav */}
+      <div className="h-20" />
     </div>
   )
 }
