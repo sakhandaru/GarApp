@@ -1,130 +1,196 @@
 'use client'
 
-import React from 'react'
-import { motion } from 'framer-motion'
+import React, { useState, useRef, useEffect } from 'react'
+import { motion, useMotionValue, useTransform, animate, PanInfo } from 'framer-motion'
+import { useAppContext, toggleTask } from '../_context/AppContext'
+import { format, addDays, startOfWeek, eachDayOfInterval, isSameDay } from 'date-fns'
+import { id } from 'date-fns/locale'
 import { 
-  Calendar, 
-  CheckSquare, 
-  RefreshCw, 
+  CheckCircle2, 
+  Circle, 
   Clock, 
   ChevronRight,
-  Star
+  MoreHorizontal,
+  Calendar as CalendarIcon,
+  Plus
 } from 'lucide-react'
-import { useAppContext, toggleTugas } from '@/app/_context/AppContext'
-import { cn } from '@/app/_lib/utils'
+import { cn } from '../_lib/utils'
+
+// --- Sub-components ---
+
+function HorizontalCalendar({ selectedDate, onDateSelect }: { selectedDate: Date, onDateSelect: (d: Date) => void }) {
+  const start = startOfWeek(new Date(), { weekStartsOn: 1 })
+  const days = eachDayOfInterval({ start, end: addDays(start, 13) }) // 2 weeks
+
+  return (
+    <div className="flex gap-4 overflow-x-auto py-8 px-8 no-scrollbar">
+      {days.map((day) => {
+        const isSelected = isSameDay(day, selectedDate)
+        const isToday = isSameDay(day, new Date())
+        
+        return (
+          <button
+            key={day.toString()}
+            onClick={() => onDateSelect(day)}
+            className={cn(
+              "flex flex-col items-center min-w-[50px] transition-all",
+              isSelected ? "scale-110" : "opacity-30"
+            )}
+          >
+            <span className="text-[10px] font-black uppercase tracking-widest mb-2">
+              {format(day, 'eee')}
+            </span>
+            <div className={cn(
+              "w-10 h-10 flex items-center justify-center text-lg font-black",
+              isSelected && "bg-black text-white rounded-none",
+              isToday && !isSelected && "text-black border-b-2 border-black"
+            )}>
+              {format(day, 'd')}
+            </div>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// --- Main HomeTab ---
 
 export function HomeTab() {
   const { state, dispatch } = useAppContext()
-  const { tugas, user } = state
+  const { user, tasks } = state
+  
+  const [selectedDate, setSelectedDate] = useState(new Date())
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
+  
+  const dragY = useMotionValue(0)
+  const sheetY = useTransform(dragY, [0, -500], [0, -500])
 
   const today = new Date()
-  const todayStr = today.toISOString().slice(0, 10)
-  const dayName = today.toLocaleDateString('id-ID', { weekday: 'long' })
-  const dateStr = today.toLocaleDateString('id-ID', { month: 'long', day: '2-digit', year: 'numeric' })
+  const formattedDay = format(today, 'eee')
+  const formattedDate = format(today, 'MMMM d, yyyy')
 
-  const tugasHariIni = tugas.filter(t => t.tanggalJatuhTempo === todayStr && !t.isSelesai)
-  const meetingCount = tugasHariIni.filter(t => t.tagIds.includes('t1')).length
-  const habitCount = tugasHariIni.filter(t => t.isHabit).length
-  const regularCount = tugasHariIni.length - meetingCount - habitCount
+  const filteredTasks = tasks.filter(t => isSameDay(new Date(t.tanggal), selectedDate))
+
+  const handleDragEnd = (event: any, info: PanInfo) => {
+    if (info.offset.y < -100) {
+      setIsSheetOpen(true)
+      animate(dragY, -600, { type: 'spring', damping: 25, stiffness: 200 })
+    } else if (info.offset.y > 100) {
+      setIsSheetOpen(false)
+      animate(dragY, 0, { type: 'spring', damping: 25, stiffness: 200 })
+    } else {
+      animate(dragY, isSheetOpen ? -600 : 0, { type: 'spring', damping: 25, stiffness: 200 })
+    }
+  }
+
+  const getGreeting = () => {
+    const hour = new Date().getHours()
+    if (hour < 12) return 'Good morning'
+    if (hour < 15) return 'Good afternoon'
+    if (hour < 18) return 'Good evening'
+    return 'Good night'
+  }
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 md:p-12 max-w-5xl mx-auto w-full space-y-12 pb-32">
-      <header className="space-y-4">
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2"
-        >
-          <span className="text-primary font-bold tracking-widest uppercase text-[10px]">Ringkasan Harian</span>
-          <div className="h-px flex-1 bg-primary/10" />
-        </motion.div>
-        
-        <div className="space-y-2">
-          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">
-            {dayName}, <span className="text-muted-foreground font-medium">{dateStr}</span>
-          </h2>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-xl md:text-2xl font-medium text-muted-foreground leading-relaxed"
-          >
-            Selamat pagi, <span className="text-foreground font-bold">{user.nama}</span>. 
-            Anda memiliki <span className="text-primary">{meetingCount} meeting</span>, 
-            <span className="text-foreground"> {regularCount} tugas</span> dan 
-            <span className="text-orange-500"> {habitCount} habit</span> hari ini.
-          </motion.p>
+    <div className="flex-1 h-screen bg-white overflow-hidden relative selection:bg-black selection:text-white">
+      {/* Background Greeting Layer */}
+      <div className="p-10 pt-20 md:p-20 space-y-12">
+        <div className="flex justify-between items-start">
+          <div className="flex items-center gap-2">
+            <h1 className="text-7xl font-black tracking-tighter">{formattedDay}</h1>
+            <div className="w-3 h-3 bg-black rounded-full mt-4" />
+          </div>
+          <p className="text-right text-zinc-400 font-black uppercase tracking-[0.2em] leading-tight pt-4">
+            {formattedDate}
+          </p>
         </div>
-      </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <section className="glass p-8 rounded-ios space-y-6">
-          <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-            <Star className="w-4 h-4" /> Status
-          </h3>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-               <p className="text-2xl font-bold">mostly free</p>
-               <p className="text-xs text-muted-foreground">Setelah jam 16:00 hari ini</p>
-            </div>
-            <div className="w-12 h-12 glass rounded-full flex items-center justify-center">
-              <Clock className="w-6 h-6 text-primary" />
-            </div>
+        <div className="space-y-6">
+          <h2 className="text-3xl font-light tracking-tight leading-tight text-black max-w-[280px]">
+            {getGreeting()}, <span className="font-black">{user.nama}</span>.<br />
+            <span className="opacity-30">You have {tasks.filter(t => !t.isSelesai).length} tasks pending today.</span>
+          </h2>
+          
+          <div className="flex gap-8 pt-8">
+             <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-black rounded-full" />
+                <span className="text-[10px] font-black uppercase tracking-widest opacity-40">4.7K Steps</span>
+             </div>
+             <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-black rounded-full" />
+                <span className="text-[10px] font-black uppercase tracking-widest opacity-40">7.3 Hours</span>
+             </div>
           </div>
-        </section>
-
-        <section className="glass p-8 rounded-ios flex items-center justify-between group cursor-pointer hover:bg-white/5 transition-all">
-          <div className="space-y-1">
-            <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Streak</h3>
-            <p className="text-2xl font-bold text-orange-500">🔥 12 Hari</p>
-          </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
-        </section>
+        </div>
       </div>
 
-      <section className="space-y-6">
-        <div className="flex items-center justify-between px-2">
-          <h3 className="text-2xl font-bold tracking-tight">Agenda Hari Ini</h3>
-          <button className="text-primary text-sm font-bold">Semua</button>
+      {/* Swipable Bottom Sheet */}
+      <motion.div
+        drag="y"
+        dragConstraints={{ top: -600, bottom: 0 }}
+        dragElastic={0.1}
+        onDragEnd={handleDragEnd}
+        style={{ y: dragY }}
+        className="absolute top-[70%] left-0 right-0 bottom-[-600px] bg-white hairline-t shadow-[0_-20px_60px_-15px_rgba(0,0,0,0.1)] z-50 overflow-hidden"
+      >
+        {/* Drag Handle */}
+        <div className="w-full flex justify-center py-4">
+          <div className="w-12 h-1 bg-zinc-100 rounded-full" />
         </div>
-        
-        <div className="space-y-3">
-          {tugasHariIni.map((task, i) => (
-            <motion.div 
-              key={task.id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.1 }}
-              onClick={() => toggleTugas(dispatch, task.id, task.isSelesai)}
-              className="glass p-5 rounded-ios flex items-center gap-5 group cursor-pointer hover:bg-white/5 transition-all"
-            >
-              <div className={cn(
-                "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
-                task.isSelesai ? "bg-green-500/10 text-green-500" : (task.isHabit ? "bg-orange-500/10 text-orange-500" : "bg-primary/10 text-primary")
-              )}>
-                {task.isSelesai ? <CheckSquare className="w-6 h-6" /> : (task.isHabit ? <RefreshCw className="w-6 h-6" /> : <CheckSquare className="w-6 h-6 opacity-40" />)}
+
+        {/* Content of Sheet */}
+        <div className="h-full flex flex-col">
+          <HorizontalCalendar selectedDate={selectedDate} onDateSelect={setSelectedDate} />
+          
+          <div className="flex-1 overflow-y-auto px-8 pb-40 space-y-px bg-zinc-50">
+            {filteredTasks.length > 0 ? (
+              filteredTasks.map((task) => (
+                <div key={task.id} className="bg-white p-8 flex items-center justify-between hairline-b group hover:bg-black transition-colors duration-500">
+                  <div className="flex items-center gap-6">
+                    <button 
+                      onClick={() => toggleTask(dispatch, task.id, task.isSelesai, task)}
+                      className="w-6 h-6 border hairline-border group-hover:border-white/20 transition-colors flex items-center justify-center"
+                    >
+                      {task.isSelesai && <CheckCircle2 className="w-4 h-4 text-black group-hover:text-white" />}
+                    </button>
+                    <div>
+                      <h4 className={cn("text-xl font-light tracking-tighter uppercase group-hover:text-white transition-colors", task.isSelesai && "line-through opacity-20")}>
+                        {task.judul}
+                      </h4>
+                      <p className="text-[9px] font-black uppercase tracking-[0.3em] opacity-30 group-hover:text-white transition-colors">
+                        {task.prioritas}_PRIORITY
+                      </p>
+                    </div>
+                  </div>
+                  {task.waktu && (
+                    <span className="text-sm font-light tracking-tighter group-hover:text-white transition-colors">
+                      {task.waktu}
+                    </span>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="py-20 flex flex-col items-center justify-center opacity-10">
+                <Clock className="w-12 h-12 mb-4" />
+                <p className="text-[10px] font-black uppercase tracking-[0.5em]">No_Events_Scheduled</p>
               </div>
-              <div className="flex-1">
-                <h4 className={cn(
-                  "font-bold text-lg tracking-tight transition-all",
-                  task.isSelesai && "line-through text-muted-foreground opacity-50"
-                )}>
-                  {task.judul}
-                </h4>
-                <p className="text-sm text-muted-foreground font-medium">
-                  {task.waktuPengingat ? new Date(task.waktuPengingat).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Sepanjang hari'}
-                </p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all" />
-            </motion.div>
-          ))}
-          {tugasHariIni.length === 0 && (
-            <p className="text-center py-10 text-muted-foreground italic glass rounded-ios border-dashed">
-              Tidak ada agenda hari ini.
-            </p>
-          )}
+            )}
+
+            <button className="w-full py-10 bg-white hairline-t flex items-center justify-center gap-4 hover:bg-black hover:text-white transition-all group">
+               <Plus className="w-4 h-4" />
+               <span className="text-[10px] font-black uppercase tracking-[0.4em]">Initialize_Node</span>
+            </button>
+          </div>
         </div>
-      </section>
+      </motion.div>
+
+      {/* Sheet Peeking Hint Overlay (Optional but nice) */}
+      {!isSheetOpen && (
+        <div className="absolute bottom-10 left-0 right-0 flex justify-center pointer-events-none">
+          <p className="text-[9px] font-black uppercase tracking-[0.6em] opacity-10">Swipe_Up_To_Explore</p>
+        </div>
+      )}
     </div>
   )
 }

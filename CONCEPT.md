@@ -315,12 +315,23 @@ UNIQUE (habit_id, tanggal)  -- 1 log per habit per hari
 
 ## 8. Roadmap Implementasi
 
-### ✅ Fase 1 — Fondasi (Selesai)
-- [x] Setup Next.js 16 + Tailwind v4 + Framer Motion
-- [x] AppContext + useReducer state management
-- [x] Layout desktop (Sidebar + Main area)
-- [x] Koneksi Supabase + basic task CRUD
-- [x] Mobile Nav (capsule)
+### ✅ Fase 1 — Fondasi
+
+**Yang masih dipakai di v2.0:**
+- [x] Setup Next.js 16 + Tailwind v4 + Framer Motion + dependensi inti
+- [x] Koneksi Supabase (`.env.local`, `supabase.ts`)
+- [x] Repository GitHub terhubung
+
+**Yang dibangun tapi akan ditulis ulang total di Fase 2:**
+- [~] AppContext + useReducer — struktur bagus, tapi tipe data & actions perlu diupdate mengikuti skema v2
+- [~] Sidebar layout — akan diredesain dengan hierarki Proyek/Inbox
+- [~] Basic task CRUD — skema database lama tidak kompatibel, akan di-reset
+
+**Yang dibangun tapi dibuang (konsep berubah):**
+- [✗] Habit Tab lama — diganti dengan Habit Tracker + Contribution Graph
+- [✗] Streak & Gamifikasi — dihapus dari konsep
+- [✗] Mobile Nav (capsule) — Desktop-first, mobile adalah v2
+- [✗] StreakTab, HabitTab, TaskList lama — komponen lama tidak digunakan
 
 ### 🔨 Fase 2 — Core Task Engine (Berikutnya)
 - [ ] Reset & migrasi skema database ke v2

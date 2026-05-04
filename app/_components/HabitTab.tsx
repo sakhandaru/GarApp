@@ -1,123 +1,132 @@
 'use client'
 
-import React from 'react'
-import { motion } from 'framer-motion'
+import React, { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { 
-  RefreshCw, 
   Flame, 
-  ChevronRight, 
-  Calendar,
-  CheckCircle2,
-  Circle
+  Plus, 
+  Trash2, 
+  ChevronLeft, 
+  ChevronRight,
+  Check
 } from 'lucide-react'
-import { useAppContext, toggleTugas } from '../_context/AppContext'
+import { useAppContext, addHabit, deleteHabit, toggleHabitLog } from '../_context/AppContext'
 import { cn } from '../_lib/utils'
+import { format, subDays, eachDayOfInterval, isSameDay } from 'date-fns'
+import { id as localeID } from 'date-fns/locale'
 
 export function HabitTab() {
   const { state, dispatch } = useAppContext()
-  const habits = state.tugas.filter(t => t.isHabit)
+  const { habits, habitLogs } = state
+  const [newHabitNama, setNewHabitNama] = useState('')
+
+  const today = new Date()
+  const last30Days = eachDayOfInterval({
+    start: subDays(today, 29),
+    end: today
+  })
+
+  const handleAddHabit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newHabitNama.trim()) {
+      addHabit(dispatch, newHabitNama.trim())
+      setNewHabitNama('')
+    }
+  }
 
   return (
-    <div className="flex-1 flex flex-col h-screen overflow-hidden">
-      <header className="p-8 md:p-12 pb-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-extrabold tracking-tight">Habit & Rutinitas</h2>
-          <div className="flex items-center gap-2 bg-orange-500/10 text-orange-500 px-4 py-2 rounded-full">
-            <Flame className="w-5 h-5 fill-current" />
-            <span className="font-bold text-sm">12 Hari Streak</span>
-          </div>
+    <div className="flex-1 p-10 h-screen flex flex-col overflow-y-auto">
+      <header className="mb-10 flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-black tracking-tighter">Habit Tracker</h2>
+          <p className="text-zinc-500 font-bold">Konsistensi dalam 30 hari terakhir.</p>
         </div>
-        <p className="text-muted-foreground font-medium">Konsistensi adalah kunci dari produktivitas yang berkelanjutan.</p>
+        <form onSubmit={handleAddHabit} className="flex items-center gap-2 glass p-1.5 rounded-2xl">
+          <input 
+            type="text" 
+            placeholder="Habit baru..." 
+            value={newHabitNama}
+            onChange={(e) => setNewHabitNama(e.target.value)}
+            className="bg-transparent px-4 py-2 text-sm font-bold outline-none placeholder:text-zinc-600 w-48"
+          />
+          <button type="submit" className="bg-primary p-2 rounded-xl text-white shadow-lg shadow-primary/20">
+            <Plus className="w-5 h-5" />
+          </button>
+        </form>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-8 md:px-12 pb-32 space-y-8">
-        {/* Weekly Progress Overview */}
-        <section className="glass p-6 rounded-ios space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <Calendar className="w-4 h-4" /> Progress Minggu Ini
-            </h3>
-          </div>
-          <div className="flex justify-between items-end h-32 gap-3 px-2">
-            {[40, 70, 45, 90, 65, 80, 30].map((height, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-3 group">
-                <div className="w-full bg-white/5 rounded-full relative overflow-hidden flex items-end h-full border border-white/5">
-                  <motion.div 
-                    initial={{ height: 0 }}
-                    animate={{ height: `${height}%` }}
-                    className={cn(
-                      "w-full transition-all group-hover:brightness-125 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.2)]",
-                      height > 70 ? "bg-linear-to-t from-primary to-blue-400" : "bg-linear-to-t from-zinc-600 to-zinc-400"
-                    )}
-                  />
-                </div>
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-tighter">{['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'][i]}</span>
-              </div>
-            ))}
-          </div>
-        </section>
+      <div className="grid grid-cols-1 gap-6">
+        {habits.map((habit) => {
+          const logs = habitLogs.filter(l => l.habitId === habit.id)
+          const isTodayDone = logs.some(l => l.tanggal === format(today, 'yyyy-MM-dd'))
 
-        {/* Habit List */}
-        <div className="space-y-4">
-          <h3 className="text-xl font-bold tracking-tight px-2">Daftar Habit</h3>
-          <div className="grid grid-cols-1 gap-4">
-            {habits.map((habit, i) => (
-              <motion.div 
-                key={habit.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="glass p-6 rounded-ios flex items-center justify-between group"
-              >
-                <div className="flex items-center gap-5">
-                  <div className="w-14 h-14 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center">
-                    <RefreshCw className="w-7 h-7" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-lg leading-tight">{habit.judul}</h4>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{habit.recurrence || 'harian'}</span>
-                      <div className="w-1 h-1 rounded-full bg-zinc-700" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-primary">85% Sukses</span>
-                    </div>
-                  </div>
+          return (
+            <motion.div 
+              key={habit.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass p-6 rounded-[32px] flex flex-col gap-6 group relative overflow-hidden"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: habit.warna, color: habit.warna }} />
+                  <h3 className="text-xl font-black tracking-tight truncate">{habit.nama}</h3>
                 </div>
-
                 <div className="flex items-center gap-4">
-                  <div className="flex -space-x-1">
-                    {[1, 1, 1, 0, 1].map((done, idx) => (
-                      <div 
-                        key={idx} 
-                        className={cn(
-                          "w-3 h-3 rounded-full border-2 border-background",
-                          done ? "bg-green-500" : "bg-zinc-800"
-                        )} 
-                      />
-                    ))}
-                  </div>
                   <button 
-                    onClick={() => toggleTugas(dispatch, habit.id, habit.isSelesai)}
+                    onClick={() => deleteHabit(dispatch, habit.id)}
+                    className="p-2 rounded-xl bg-white/5 text-zinc-600 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={() => toggleHabitLog(dispatch, habit.id, format(today, 'yyyy-MM-dd'), isTodayDone)}
                     className={cn(
-                      "w-12 h-12 rounded-full flex items-center justify-center transition-all",
-                      habit.isSelesai 
-                        ? "bg-green-500 text-white shadow-lg shadow-green-500/20" 
-                        : "glass hover:bg-white/10 text-muted-foreground"
+                      "px-6 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all",
+                      isTodayDone ? "bg-zinc-800 text-zinc-500" : "bg-primary text-white"
                     )}
                   >
-                    {habit.isSelesai ? <CheckCircle2 className="w-6 h-6" /> : <Circle className="w-6 h-6" />}
+                    {isTodayDone ? 'Selesai' : 'Check-in'}
                   </button>
                 </div>
-              </motion.div>
-            ))}
-            
-            {habits.length === 0 && (
-              <div className="py-20 text-center glass rounded-ios border-dashed">
-                <p className="text-muted-foreground italic">Belum ada habit yang ditambahkan.</p>
               </div>
-            )}
-          </div>
-        </div>
+
+              {/* Monthly Heatmap (Small Squares) */}
+              <div className="flex flex-wrap gap-1.5 p-4 bg-black/20 rounded-2xl">
+                {last30Days.map((day) => {
+                  const dateStr = format(day, 'yyyy-MM-dd')
+                  const isDone = logs.some(l => l.tanggal === dateStr)
+                  const isTday = isSameDay(day, today)
+
+                  return (
+                    <div 
+                      key={dateStr}
+                      onClick={() => toggleHabitLog(dispatch, habit.id, dateStr, isDone)}
+                      className={cn(
+                        "w-6 h-6 rounded-md transition-all cursor-pointer border",
+                        isDone 
+                          ? "border-transparent" 
+                          : "border-white/5 hover:border-white/20 bg-white/5",
+                        isTday && !isDone && "border-primary/50"
+                      )}
+                      style={{ backgroundColor: isDone ? habit.warna : undefined }}
+                      title={format(day, 'd MMM yyyy')}
+                    />
+                  )
+                })}
+              </div>
+            </motion.div>
+          )
+        })}
       </div>
+
+      {habits.length === 0 && (
+        <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50">
+          <Flame className="w-16 h-16 mb-4 text-zinc-800" />
+          <h3 className="text-xl font-bold">Belum ada habit</h3>
+          <p className="text-sm">Mulai bangun kebiasaan baru sekarang.</p>
+        </div>
+      )}
     </div>
   )
 }

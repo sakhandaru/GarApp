@@ -1,91 +1,88 @@
 'use client'
 
 import React from 'react'
-import { motion } from 'framer-motion'
 import { 
   Home, 
-  Inbox, 
-  RefreshCw, 
-  Flame, 
-  Folder, 
-  Tag as TagIcon, 
+  ListTodo, 
+  Calendar, 
+  Activity, 
+  Briefcase,
+  Target,
+  Plus,
+  Search,
   Settings,
-  Plus
+  Cpu,
+  Hash
 } from 'lucide-react'
-import { cn } from '@/app/_lib/utils'
+import { cn } from '../_lib/utils'
 
 interface SidebarProps {
-  activeTab: 'home' | 'tugas' | 'habit' | 'streak'
-  onTabChange: (tab: 'home' | 'tugas' | 'habit' | 'streak') => void
+  activeTab: string
+  onTabChange: (tab: string) => void
   onOpenAdd: () => void
+  onOpenSearch: () => void
 }
 
-export function Sidebar({ activeTab, onTabChange, onOpenAdd }: SidebarProps) {
+export function Sidebar({ activeTab, onTabChange, onOpenAdd, onOpenSearch }: SidebarProps) {
   const menuItems = [
-    { id: 'home', label: 'Beranda', icon: Home },
-    { id: 'tugas', label: 'Tugas', icon: Inbox },
-    { id: 'habit', label: 'Habit', icon: RefreshCw },
-    { id: 'streak', label: 'Streak', icon: Flame },
+    { id: 'home', label: 'Terminal', icon: Home },
+    { id: 'tasks', label: 'Actionable', icon: ListTodo },
+    { id: 'projects', label: 'Nodes', icon: Briefcase },
+    { id: 'habit', label: 'Protocol', icon: Activity },
+    { id: 'calendar', label: 'Timeline', icon: Calendar },
+    { id: 'focus', label: 'Core', icon: Target },
   ]
 
   return (
-    <aside className="w-72 h-screen glass border-r flex flex-col p-6 gap-8 sticky top-0">
-      <div className="flex items-center gap-3 px-2">
-        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
-          <span className="font-black text-xl">G</span>
+    <div className="w-[280px] h-screen bg-white border-r-2 border-black flex flex-col p-6 relative">
+      <div className="flex items-center gap-3 mb-12 px-2">
+        <div className="w-10 h-10 bg-black flex items-center justify-center rounded-none">
+          <Cpu className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h1 className="font-bold text-lg leading-none">Garapp</h1>
-          <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Premium</span>
+          <h1 className="text-2xl font-black tracking-tighter text-black">GARAPP</h1>
+          <p className="text-[9px] font-black uppercase tracking-[0.4em] text-zinc-400">SYS_V2.0.4</p>
         </div>
       </div>
-
-      <button 
-        onClick={onOpenAdd}
-        className="w-full bg-primary text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
-      >
-        <Plus className="w-5 h-5" />
-        Tambah Tugas
-      </button>
 
       <nav className="flex-1 space-y-1">
         {menuItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => onTabChange(item.id as any)}
+            onClick={() => onTabChange(item.id)}
             className={cn(
-              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all relative group",
-              activeTab === item.id ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              "w-full flex items-center gap-4 px-4 py-4 transition-all group relative",
+              activeTab === item.id 
+                ? "bg-black text-white" 
+                : "text-black hover:bg-black/5"
             )}
           >
-            {activeTab === item.id && (
-              <motion.div 
-                layoutId="sidebar-active"
-                className="absolute inset-0 bg-primary/10 rounded-xl"
-              />
-            )}
-            <item.icon className="w-5 h-5 relative z-10" />
-            <span className="font-semibold relative z-10">{item.label}</span>
+            <item.icon className={cn(
+              "w-5 h-5 transition-transform",
+              activeTab === item.id ? "text-white" : "text-black"
+            )} />
+            <span className="text-[11px] font-black uppercase tracking-[0.2em]">{item.label}</span>
           </button>
         ))}
       </nav>
 
-      <div className="space-y-4 pt-4 border-t border-white/10">
-        <div className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Koleksi</div>
-        <button className="w-full flex items-center gap-3 px-3 py-2 text-muted-foreground hover:text-foreground transition-all">
-          <Folder className="w-5 h-5" />
-          <span className="font-semibold">Proyek</span>
+      <div className="space-y-3 mt-auto">
+        <button 
+          onClick={onOpenSearch}
+          className="w-full flex items-center gap-4 px-4 py-4 text-black border-2 border-black hover:bg-black hover:text-white transition-all group"
+        >
+          <Search className="w-5 h-5" />
+          <span className="text-[10px] font-black uppercase tracking-widest">Search_Cmd+K</span>
         </button>
-        <button className="w-full flex items-center gap-3 px-3 py-2 text-muted-foreground hover:text-foreground transition-all">
-          <TagIcon className="w-5 h-5" />
-          <span className="font-semibold">Tag</span>
+
+        <button 
+          onClick={onOpenAdd}
+          className="w-full bg-black text-white flex items-center justify-center gap-3 py-5 font-black uppercase tracking-[0.3em] text-[11px] hover:bg-zinc-800 transition-all active:invert"
+        >
+          <Plus className="w-5 h-5" />
+          Quick_Entry
         </button>
       </div>
-
-      <button className="mt-auto flex items-center gap-3 px-3 py-3 text-muted-foreground hover:text-foreground transition-all">
-        <Settings className="w-5 h-5" />
-        <span className="font-semibold">Pengaturan</span>
-      </button>
-    </aside>
+    </div>
   )
 }

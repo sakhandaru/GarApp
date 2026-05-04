@@ -1,70 +1,57 @@
 'use client'
 
 import React from 'react'
-import { motion } from 'framer-motion'
-import { Home, Inbox, RefreshCw, Plus } from 'lucide-react'
-import { cn } from '@/app/_lib/utils'
+import { 
+  Home, 
+  ListTodo, 
+  Briefcase, 
+  Activity, 
+  Plus,
+  Search,
+  Cpu
+} from 'lucide-react'
+import { cn } from '../_lib/utils'
 
 interface MobileNavProps {
-  activeTab: 'home' | 'tugas' | 'habit' | 'streak'
-  onTabChange: (tab: 'home' | 'tugas' | 'habit' | 'streak') => void
+  activeTab: string
+  onTabChange: (tab: string) => void
   onOpenAdd: () => void
+  onOpenSearch: () => void
 }
 
-export function MobileNav({ activeTab, onTabChange, onOpenAdd }: MobileNavProps) {
+export function MobileNav({ activeTab, onTabChange, onOpenAdd, onOpenSearch }: MobileNavProps) {
+  const items = [
+    { id: 'home', icon: Home },
+    { id: 'tasks', icon: ListTodo },
+    { id: 'projects', icon: Briefcase },
+    { id: 'habit', icon: Activity },
+  ]
+
   return (
-    <div className="md:hidden fixed bottom-10 left-0 right-0 px-8 z-50 flex items-center justify-center">
-      <motion.nav 
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="bg-zinc-950/90 backdrop-blur-xl rounded-full h-14 flex items-center px-1.5 shadow-2xl border border-white/5"
+    <div className="fixed bottom-6 left-6 right-6 z-[100] flex items-center justify-between pointer-events-none sm:hidden">
+      {/* Menu Bar */}
+      <div className="bg-black/90 backdrop-blur-xl p-2 rounded-full border border-white/20 flex items-center gap-1 pointer-events-auto shadow-2xl">
+        {items.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => onTabChange(item.id)}
+            className={cn(
+              "w-12 h-12 rounded-full flex items-center justify-center transition-all",
+              activeTab === item.id ? "bg-white text-black" : "text-white/40 hover:text-white"
+            )}
+          >
+            <item.icon className="w-5 h-5" />
+          </button>
+        ))}
+      </div>
+
+      {/* Add Button */}
+      <button
+        onClick={onOpenAdd}
+        className="w-16 h-16 bg-black rounded-full flex items-center justify-center text-white border-2 border-black shadow-2xl pointer-events-auto active:scale-90 transition-transform"
       >
-        <NavButton 
-          active={activeTab === 'home'} 
-          onClick={() => onTabChange('home')}
-          icon={Home}
-        />
-        <NavButton 
-          active={activeTab === 'tugas'} 
-          onClick={() => onTabChange('tugas')}
-          icon={Inbox}
-        />
-        <NavButton 
-          active={activeTab === 'habit'} 
-          onClick={() => onTabChange('habit')}
-          icon={RefreshCw}
-        />
-
-        <div className="w-px h-6 bg-white/10 mx-1" />
-
-        <button 
-          onClick={onOpenAdd}
-          className="w-11 h-11 bg-primary/20 rounded-full flex items-center justify-center text-primary active:scale-95 transition-all mx-1"
-        >
-          <Plus className="w-6 h-6 stroke-[3px]" />
-        </button>
-      </motion.nav>
+        <Plus className="w-8 h-8" />
+      </button>
     </div>
-  )
-}
-
-function NavButton({ active, onClick, icon: Icon }: any) {
-  return (
-    <button 
-      onClick={onClick}
-      className="relative w-14 h-11 flex items-center justify-center transition-all duration-300"
-    >
-      {active && (
-        <motion.div 
-          layoutId="mobile-nav-bg"
-          className="absolute inset-0 bg-zinc-800 rounded-full mx-1"
-          transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
-        />
-      )}
-      <Icon className={cn(
-        "w-5 h-5 transition-all relative z-10", 
-        active ? "text-white" : "text-zinc-500"
-      )} />
-    </button>
   )
 }

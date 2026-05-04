@@ -1,44 +1,59 @@
-export type Prioritas = 'tinggi' | 'sedang' | 'rendah' | 'none'
+export type Prioritas = 'low' | 'medium' | 'high'
+export type RecurringType = 'daily' | 'weekly' | 'monthly'
 
-export interface Subtugas {
+export interface Project {
   id: string
-  judul: string
-  isSelesai: boolean
-}
-
-export interface Tugas {
-  id: string
-  judul: string
-  deskripsi?: string
-  prioritas: Prioritas
-  tanggalJatuhTempo?: string
-  waktuPengingat?: string
-  proyekId: string
-  tagIds: string[]
-  subtugas: Subtugas[]
-  isSelesai: boolean
-  isHabit: boolean // Tugas berulang (Habit)
-  recurrence?: 'harian' | 'mingguan' // Pola pengulangan
-  selesaiPada?: string
+  nama: string
+  warna: string
+  urutan: number
   dibuatPada: string
 }
 
-export interface Proyek {
+export interface Task {
   id: string
-  nama: string
-  warna: string
+  judul: string
+  catatan?: string
+  prioritas: Prioritas
+  tanggal: string // YYYY-MM-DD
+  waktu?: string // HH:mm:ss
+  proyekId?: string // null = Inbox
+  isSelesai: boolean
+  status: 'backlog' | 'ready' | 'progress' | 'selesai'
+  isRecurring: boolean
+  recurringType?: RecurringType
+  recurringDays?: number[]
+  parentTaskId?: string // untuk subtask
+  subtasks?: Task[] // computed field untuk UI
+  dibuatPada: string
+  selesaiPada?: string
 }
 
-export interface Tag {
+export interface Habit {
   id: string
   nama: string
+  deskripsi?: string
   warna: string
+  frekuensi: 'harian' | 'mingguan'
+  hariMingguan?: number[]
+  dibuatPada: string
+}
+
+export interface HabitLog {
+  id: string
+  habitId: string
+  tanggal: string
+  dicatatPada: string
 }
 
 export interface AppState {
-  tugas: Tugas[]
-  proyek: Proyek[]
-  tag: Tag[]
-  user: { nama: string }
+  user: {
+    nama: string
+  }
+  tasks: Task[]
+  projects: Project[]
+  habits: Habit[]
+  habitLogs: HabitLog[]
   isLoading: boolean
+  activeTab: string
+  activeProjectId: string | null
 }
